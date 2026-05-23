@@ -157,6 +157,20 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Criar sonar-project.properties dinâmico
+        run: |
+          # Define o nome do repo e a branch dinamicamente
+          echo "sonar.projectKey=${{ github.event.repository.name }}" > sonar-project.properties
+          echo "sonar.projectName=${{ github.event.repository.name }}" >> sonar-project.properties
+          echo "sonar.branch.name=${{ github.ref_name }}" >> sonar-project.properties
+          echo "sonar.sources=." >> sonar-project.properties
+          echo "sonar.inclusions=**/*.js" >> sonar-project.properties
+          echo "sonar.sourceEncoding=UTF-8" >> sonar-project.properties
+          echo "sonar.exclusions=node_modules/**,.git/**,.github/**,coverage/**,dist/**" >> sonar-project.properties
+
+      - name: Exibir configuração do Sonar
+        run: cat sonar-project.properties
+
       - name: Scan de Segurança com Trivy
         uses: aquasecurity/trivy-action@master
         with:
