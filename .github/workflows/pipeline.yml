@@ -124,7 +124,7 @@ jobs:
   # ETAPAS DE STAGING (Esqueleto)
   # ==========================================
   
- job_release_docker:
+  job_release_docker:
     needs: estagio_lint
     if: github.ref == 'refs/heads/staging'
     runs-on: ubuntu-latest
