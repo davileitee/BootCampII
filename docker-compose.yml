@@ -1,0 +1,17 @@
+services:
+  app:
+    image: davileitee/auladevops-app:latest
+    container_name: marmitatech-app-v2
+    ports:
+      - "8093:4000"
+    environment:
+      DB_HOST: dbcentral
+      DB_USER: root
+      DB_PASS: password
+      DB_NAME: marmitadb
+    networks:
+      - rede_alunos
+
+networks:
+  rede_alunos:
+    external: true
