@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Aalthair's Food | Novo Pedido</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    * { box-sizing: border-box; }
+    body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: 'Inter', sans-serif;
+        background: radial-gradient(circle at top left, #ff7f50, transparent 28%),
+                    radial-gradient(circle at bottom right, #ffa500, transparent 26%),
+                    #f8fafc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+    }
+    .card {
+        width: 100%;
+        max-width: 420px;
+        padding: 32px;
+        background: #ffffff;
+        border-radius: 28px;
+        box-shadow: 0 28px 60px rgba(15, 23, 42, 0.12);
+        border: 1px solid rgba(15, 23, 42, 0.08);
+    }
+    .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+    .brand-icon {
+        width: 44px;
+        height: 44px;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, #ff4500, #ffa500);
+        color: white;
+        border-radius: 14px;
+        font-size: 1.25rem;
+    }
+    .brand-title {
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: #0f172a;
+        line-height: 1.2;
+    }
+    h1 {
+        margin: 0 0 20px;
+        font-size: 1.65rem;
+        color: #0f172a;
+    }
+    .hint {
+        margin-bottom: 24px;
+        color: #475569;
+        line-height: 1.6;
+    }
+    .field {
+        margin-bottom: 18px;
+    }
+    .field label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #334155;
+    }
+    .field input, .field select {
+        width: 100%;
+        padding: 14px 16px;
+        border-radius: 14px;
+        border: 1px solid #cbd5e1;
+        background: #f8fafc;
+        font-size: 1rem;
+        color: #0f172a;
+    }
+    .field input:focus, .field select:focus {
+        outline: none;
+        border-color: #ff4500;
+        box-shadow: 0 0 0 4px rgba(255, 69, 0, 0.12);
+    }
+    button {
+        width: 100%;
+        border: none;
+        border-radius: 14px;
+        padding: 14px 16px;
+        font-size: 1rem;
+        font-weight: 700;
+        color: white;
+        background: linear-gradient(135deg, #ff4500, #ffa500);
+        cursor: pointer;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 16px 32px rgba(255, 69, 0, 0.18);
+    }
+    .footer {
+        margin-top: 22px;
+        font-size: 0.92rem;
+        color: #64748b;
+        text-align: center;
+    }
+    .back-link {
+        display: block;
+        text-align: center;
+        margin-top: 16px;
+        color: #ff4500;
+        text-decoration: none;
+        font-weight: 600;
+    }
+    .back-link:hover {
+        text-decoration: underline;
+    }
+</style>
+</head>
+<body>
+<div class="card">
+    <div class="brand">
+        <div class="brand-icon">🍽️</div>
+        <div class="brand-title">Aalthair's Food</div>
+    </div>
+    <h1>Cadastro de Pedido</h1>
+    <p class="hint">Registre um novo pedido associando um cliente a uma marmita disponível.</p>
+
+    <form id="orderForm" method="POST" action="/orders">
+        <div class="field">
+            <label for="customer_name">Nome do Cliente</label>
+            <input type="text" id="customer_name" name="customer_name" required>
+        </div>
+        <div class="field">
+            <label for="item_id">Selecionar Marmita</label>
+            <select id="item_id" name="item_id" required>
+                <option value="">Escolha uma marmita</option>
+                <% items.forEach(item => { %>
+                    <option value="<%= item.id %>"><%= item.name %> (<%= item.category %>)</option>
+                <% }); %>
+            </select>
+        </div>
+        <button type="submit">Cadastrar Pedido</button>
+    </form>
+    <a href="/dashboard" class="back-link">Voltar ao Dashboard</a>
+    <div class="footer">© 2026 Aalthair's Food • Sistema de Gestão de Validade</div>
+</div>
+
+<script>
+    document.getElementById('orderForm').addEventListener('submit', function(e){
+        const customer = document.getElementById('customer_name').value.trim();
+        const item = document.getElementById('item_id').value;
+        if (!customer || !item) {
+            e.preventDefault();
+            alert('Por favor, preencha todos os campos.');
+        }
+    });
+</script>
+</body>
+</html>
