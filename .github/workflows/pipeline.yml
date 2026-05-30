@@ -2,9 +2,7 @@ name: integracao continua e staging
 
 on:
   push:
-    branches: ["develop", "staging"]
-  pull_request:
-    branches: ["develop"]
+    branches: ["staging"]
 
 jobs:
   # ==========================================
@@ -88,18 +86,16 @@ jobs:
 
   job_sonar:
     needs: estagio_lint
-    # Restringe este job específico de Sonar básico apenas para a develop
-    if: github.ref == 'refs/heads/develop'
+    if: github.ref == 'refs/heads/staging'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout do código
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Essencial para o Sonar ler o histórico de branches
+          fetch-depth: 0
 
       - name: Criar sonar-project.properties dinâmico
         run: |
-          # Define o nome do repo e a branch dinamicamente
           echo "sonar.projectKey=${{ github.event.repository.name }}" > sonar-project.properties
           echo "sonar.projectName=${{ github.event.repository.name }}" >> sonar-project.properties
           echo "sonar.branch.name=${{ github.ref_name }}" >> sonar-project.properties
@@ -116,75 +112,80 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: "https://devsecops.dcotech.com.br"
         with:
-          # Reforça a branch nos argumentos da execução
           args: >
             -Dsonar.branch.name=${{ github.ref_name }}
 
   # ==========================================
-  # ETAPAS DE STAGING (Esqueleto)
+  # ETAPAS DE STAGING
   # ==========================================
-  
+
   job_release_docker:
     needs: estagio_lint
     if: github.ref == 'refs/heads/staging'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout do código
-        uses: actions/checkout@v4
+      - name: TO DO - Checkout do código
+        run: echo "Você deve implementar o checkout aqui"
 
-      - name: Login no Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: TO DO - Login no Registry
+        run: echo "Você deve implementar o login do Docker aqui"
 
-      - name: Build e Push da Imagem
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: |
-            davileitee/auladevops-app:${{ github.sha }}
-            davileitee/auladevops-app:latest
+      - name: TO DO - Build e Push da Imagem
+        run: echo "Você deve implementar a criação do artefato (imagem) e o envio pro registry aqui"
 
   job_trivy_sonar:
     needs: job_release_docker
     if: github.ref == 'refs/heads/staging'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout do código
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - name: TO DO - Checkout do código para o Sonar
+        run: echo "Você deve implementar o checkout com fetch-depth 0 aqui"
 
-      - name: Criar sonar-project.properties dinâmico
-        run: |
-          # Define o nome do repo e a branch dinamicamente
-          echo "sonar.projectKey=${{ github.event.repository.name }}" > sonar-project.properties
-          echo "sonar.projectName=${{ github.event.repository.name }}" >> sonar-project.properties
-          echo "sonar.branch.name=${{ github.ref_name }}" >> sonar-project.properties
-          echo "sonar.sources=." >> sonar-project.properties
-          echo "sonar.inclusions=**/*.js" >> sonar-project.properties
-          echo "sonar.sourceEncoding=UTF-8" >> sonar-project.properties
-          echo "sonar.exclusions=node_modules/**,.git/**,.github/**,coverage/**,dist/**" >> sonar-project.properties
+      - name: TO DO - Scan de Segurança com Trivy
+        run: echo "Você deve implementar a varredura do Trivy gerando o arquivo JSON aqui"
 
-      - name: Exibir configuração do Sonar
-        run: cat sonar-project.properties
+      - name: TO DO - SonarQube lendo o Trivy (External Issues)
+        run: echo "Você deve implementar o passo do Sonar injetando o JSON do Trivy aqui"
 
-      - name: Scan de Segurança com Trivy
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: davileitee/auladevops-app:${{ github.sha }}
-          format: json
-          output: trivy-result.json
-          exit-code: "0"
+  job_deploy_staging:
+      needs: job_trivy_sonar
+      if: github.ref == 'refs/heads/staging'
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout do código
+          uses: actions/checkout@v4
 
-      - name: SonarQube lendo o Trivy (External Issues)
-        uses: sonarsource/sonarqube-scan-action@master
-        env:
-          SONAR_TOKEN: ${{ secrets.TOKEN_SONAR }}
-          SONAR_HOST_URL: "https://devsecops.dcotech.com.br"
-        with:
-          args: >
-            -Dsonar.branch.name=${{ github.ref_name }}
-            -Dsonar.externalIssuesReportPaths=trivy-result.json
+        - name: Preparar arquivo Compose com o identificador do aluno
+          run: |
+            cp docker-compose.yml docker-compose-jenrique.yml
+
+        - name: Copiar Compose e init.sql para a EC2 (via SCP)
+          uses: appleboy/scp-action@v0.1.7
+          with:
+            host: ${{ secrets.EC2_HOST }}
+            username: ${{ secrets.EC2_USER }}
+            key: ${{ secrets.EC2_PRIVATE_KEY }}
+            source: "docker-compose-jenrique.yml,init.sql"
+            target: "/home/${{ secrets.EC2_USER }}/<pastaaluno>"
+
+        - name: Executar o Deploy na EC2 (via SSH)
+          uses: appleboy/ssh-action@v1.0.3
+          with:
+            host: ${{ secrets.EC2_HOST }}
+            username: ${{ secrets.EC2_USER }}
+            key: ${{ secrets.EC2_PRIVATE_KEY }}
+            script: |
+              cd /home/${{ secrets.EC2_USER }}/<pastaaluno>
+
+              # Executa o init.sql no container MySQL antes de subir a aplicação
+              echo "⏳ Executando init.sql no container mysql-infra..."
+              sudo docker exec -i mysql-infra \
+                mysql -u root -ppassword < init.sql
+
+              echo "✅ init.sql executado com sucesso!"
+
+              # Faz pull da nova imagem e sobe o container da aplicação
+              sudo docker compose -f docker-compose-jenrique.yml pull
+              sudo docker compose -f docker-compose-jenrique.yml up -d
+
+              echo "✅ Deploy do aluno jenrique finalizado com sucesso!"
