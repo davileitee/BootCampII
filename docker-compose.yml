@@ -1,14 +1,15 @@
 services:
   app:
-    image: davileitee/auladevops-app:latest
+    image: davileitee/auladevops-app:staging
     container_name: marmitatech-app-v2
     ports:
       - "8093:4000"
     environment:
-      DB_HOST: dbcentral
+      DB_HOST: mysql-infra
+      DB_PORT: 3306
       DB_USER: root
       DB_PASS: password
-      DB_NAME: marmitadb
+      DB_NAME: marmitadbDavi
     networks:
       - rede_alunos
 
