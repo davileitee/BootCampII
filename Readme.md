@@ -17,6 +17,10 @@ Abra o MySql e execute : USE marmitadb;
 
 
 -Rodando em http://localhost:3000/
+Minha porta é 8093
+User : admin
+Senha : admin123
+
 
 -Front-end atualizado para o sistema "Poupe & Previna":
   * Login renovado com nova identidade visual
