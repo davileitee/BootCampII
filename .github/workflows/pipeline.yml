@@ -157,7 +157,7 @@ jobs:
 
         - name: Preparar arquivo Compose com o identificador do aluno
           run: |
-            cp docker-compose.yml docker-compose-jenrique.yml
+            cp docker-compose.yml docker-compose-davileitee.yml
 
         - name: Copiar Compose e init.sql para a EC2 (via SCP)
           uses: appleboy/scp-action@v0.1.7
@@ -165,8 +165,8 @@ jobs:
             host: ${{ secrets.EC2_HOST }}
             username: ${{ secrets.EC2_USER }}
             key: ${{ secrets.EC2_PRIVATE_KEY }}
-            source: "docker-compose-jenrique.yml,init.sql"
-            target: "/home/${{ secrets.EC2_USER }}/<pastaaluno>"
+            source: "docker-compose-davileitee.yml,init.sql"
+            target: "/home/${{ secrets.EC2_USER }}/davileitee"
 
         - name: Executar o Deploy na EC2 (via SSH)
           uses: appleboy/ssh-action@v1.0.3
@@ -175,7 +175,7 @@ jobs:
             username: ${{ secrets.EC2_USER }}
             key: ${{ secrets.EC2_PRIVATE_KEY }}
             script: |
-              cd /home/${{ secrets.EC2_USER }}/<pastaaluno>
+              cd /home/${{ secrets.EC2_USER }}/davileitee
 
               # Executa o init.sql no container MySQL antes de subir a aplicação
               echo "⏳ Executando init.sql no container mysql-infra..."
@@ -185,7 +185,7 @@ jobs:
               echo "✅ init.sql executado com sucesso!"
 
               # Faz pull da nova imagem e sobe o container da aplicação
-              sudo docker compose -f docker-compose-jenrique.yml pull
-              sudo docker compose -f docker-compose-jenrique.yml up -d
+              sudo docker compose -f docker-compose-davileitee.yml pull
+              sudo docker compose -f docker-compose-davileitee.yml up -d
 
-              echo "✅ Deploy do aluno jenrique finalizado com sucesso!"
+              echo "✅ Deploy do aluno davileitee finalizado com sucesso!"
